@@ -94,6 +94,7 @@ AVBufferRef *hw_device_ctx;
 
 char *vstats_filename;
 char *sdp_filename;
+char *progress_filename;
 
 float audio_drift_threshold = 0.1;
 float dts_delta_threshold   = 10;
@@ -109,6 +110,7 @@ int do_benchmark_all  = 0;
 int do_hex_dump       = 0;
 int do_pkt_dump       = 0;
 int copy_ts           = 0;
+int fix_dts           = 1;
 int start_at_zero     = 0;
 int copy_tb           = -1;
 int debug_ts          = 0;
@@ -3308,18 +3310,7 @@ fail:
 
 static int opt_progress(void *optctx, const char *opt, const char *arg)
 {
-    AVIOContext *avio = NULL;
-    int ret;
-
-    if (!strcmp(arg, "-"))
-        arg = "pipe:";
-    ret = avio_open2(&avio, arg, AVIO_FLAG_WRITE, &int_cb, NULL);
-    if (ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Failed to open progress URL \"%s\": %s\n",
-               arg, av_err2str(ret));
-        return ret;
-    }
-    progress_avio = avio;
+    progress_filename = arg;
     return 0;
 }
 
@@ -3425,6 +3416,8 @@ const OptionDef options[] = {
         "audio drift threshold", "threshold" },
     { "copyts",         OPT_BOOL | OPT_EXPERT,                       { &copy_ts },
         "copy timestamps" },
+	{ "fix_dts",        OPT_BOOL | OPT_EXPERT,                       { &fix_dts },
+        "fix invalid dts" },
     { "start_at_zero",  OPT_BOOL | OPT_EXPERT,                       { &start_at_zero },
         "shift input timestamps to start at 0 when using copyts" },
     { "copytb",         HAS_ARG | OPT_INT | OPT_EXPERT,              { &copy_tb },
